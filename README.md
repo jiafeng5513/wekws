@@ -1,85 +1,47 @@
-# WeKws
+KWS (keyword spotting) research
+===========================================================
 
-[**Roadmap**](https://github.com/wenet-e2e/wekws/issues/121)
-| [**Paper**](https://arxiv.org/pdf/2210.16743.pdf)
+# about this repo
+## 1. what is wekws
+this repo is forked from https://github.com/wenet-e2e/wekws, [this is the original doc](./README-wekws.md)
+## 2. download dataset
+* 方案1,使用脚本下载AISHELL2, musan, dns_challenge数据集
+  `python tools/download.py <download_dir>`, 该方案从aliyun镜像下载,并且会进行解压缩,并生成文件列表all.txt
+* 方案2,手动下载
+  1. [Hi-MIA(你好米雅): A far-field text-dependent speaker verification database for AISHELL Speaker Verification Challenge 2019](https://www.openslr.org/85/)
+  2. [LibriSpeech: Large-scale (1000 hours) corpus of read English speech](https://www.openslr.org/12/)
+  3. [THCHS30: A Free Chinese Speech Corpus Released by CSLT@Tsinghua University](https://www.openslr.org/18/)
+  4. [AIShell-1: An Open-Source Mandarin Speech Corpus and A Speech Recognition Baseline](http://www.openslr.org/33/)
+  5. [MUSAN: a corpus of music, speech, and noise recordings.](https://www.openslr.org/17/)
+  6. [AISHELL-2: the largest free speech corpus available for Mandarin ASR research](https://github.com/kaldi-asr/kaldi/tree/master/egs/aishell2)
+  7. [dns_challenge: ICASSP 2023 Deep Noise Suppression Challenge](https://github.com/microsoft/DNS-Challenge)
+* 数据说明
+  1. 这些数据集中只有`Hi-MIA`数据集适合作为正样本进行语音唤醒(KWS)模型的训练与研究,其他数据集均只适合与作为无关样本或负样本.
+  2. `AISHELL-2`数据集需要进行申请,提供方没有提供下载链接,申请成功后会收到邮件,需要邮寄硬盘获取数据.
+## 3.training
+### 1. create training dataset
+  1. 训练使用himia数据集作为唤醒词（正例）数据来源，AISHELL2数据集作为非唤醒词（反例）数据来源. 在开发阶段,对于训练集,随机选出1000段正样本和1000段副样本，对于验证集,分别选出100段, 均转为16k采样, 具体才做方法如下:
+  2. 使用`python tools/create_dataset.py`进行训练集合和验证集的采样和转换, 并创建文件列表文件`wav.scp`和标签文件`label.txt`.
+  3. 使用`bash tools/wav_to_duration.sh /path/to/wav.scp /path/to/wav.dur`创建dur文件,注意训练集和验证集都需要生成该文件.
+  4. 使用`python tools/make_list.py /path/to/wav.scp /path/to/label_text /path/to/wav.dur /path/to/data.list` 生成数据集索引,注意训练集和验证集都需要生成该文件.
+  5. 如需增加样本量,修改`tools/create_dataset.py`以实现不同的采样数量.
 
-
-Production First and Production Ready End-to-End Keyword Spotting Toolkit.
-
-The goal of this toolkit it to...
-
-Small footprint keyword spotting (KWS), or specifically wake-up word (WuW) detection is a typical and important module in internet of things (IoT) devices.  It provides a way for users to control IoT devices with a hands-free experience. A WuW detection system usually runs locally and persistently on IoT devices, which requires low consumptional power, less model parameters, low computational comlexity and to detect predefined keyword in a streaming way, i.e., requires low latency.
-
-
-## Typical Scenario
-
-We are going to support the following typical applications of wakeup word:
-
-* Single wake-up word
-* Multiple wake-up words
-* Customizable wake-up word
-* Personalized wake-up word, i.e. combination of wake-up word detection and voiceprint
-
-## Installation
-
-- Clone the repo
-``` sh
-git clone https://github.com/wenet-e2e/wekws.git
-```
-
-- Install Conda: please see https://docs.conda.io/en/latest/miniconda.html
-- Create Conda env:
-
-``` sh
-conda create -n wekws python=3.8
-conda activate wekws
-pip install -r requirements.txt
-conda install pytorch=1.10.0 torchaudio=0.10.0 cudatoolkit=11.1 -c pytorch -c conda-forge
-```
-
-## Dataset
-
-We plan to support a variaty of open source wake-up word datasets, include but not limited to:
-
-* [Hey Snips](https://github.com/sonos/keyword-spotting-research-datasets)
-* [Google Speech Command](https://arxiv.org/pdf/1804.03209.pdf)
-* [Hi Miya(你好米雅)](http://www.aishelltech.com/wakeup_data)
-* [Hi Xiaowen(你好小问)](http://openslr.org/87/)
-
-All the well-trained models on these dataset will be made public avaliable.
-
-
-## Runtime
-
-We plan to support a variaty of hardwares and platforms, including:
-
-* Web browser
-* x86
-* Android
-* Raspberry Pi
-
-## Discussion
-
-For Chinese users, you can scan the QR code on the left to follow our offical account of WeNet.
-We also created a WeChat group for better discussion and quicker response.
-Please scan the QR code on the right to join the chat group.
-
-| <img src="https://github.com/wenet-e2e/wenet-contributors/blob/main/wenet_official.jpeg" width="250px"> | <img src="https://github.com/wenet-e2e/wenet-contributors/blob/main/wekws/menglong.jpg" width="250px"> |
-| ---- | ---- |
-
-## Reference
-
-* Mining Effective Negative Training Samples for Keyword Spotting
-  ([github]( https://github.com/jingyonghou/KWS_Max-pooling_RHE),
-   [paper](https://www.microsoft.com/en-us/research/uploads/prod/2020/04/ICASSP2020_Max_pooling_KWS.pdf))
-* Max-pooling Loss Training of Long Short-term Memory Networks for Small-footprint Keyword Spotting
-  ([paper](https://arxiv.org/pdf/1705.02411.pdf))
-* A depthwise separable convolutional neural network for keyword spotting on an embedded system
-  ([github](https://github.com/PeterMS123/KWS-DS-CNN-for-embedded),
-   [paper](https://asmp-eurasipjournals.springeropen.com/track/pdf/10.1186/s13636-020-00176-2.pdf))
-* Hello Edge: Keyword Spotting on Microcontrollers
-  ([github](https://github.com/ARM-software/ML-KWS-for-MCU),
-   [paper](https://arxiv.org/pdf/1711.07128.pdf))
-* An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling
-  ([github](http://github.com/locuslab/TCN),
-   [paper](https://arxiv.org/pdf/1803.01271.pdf))
+# references and research log
+## 1. hot-word detection (voice-trigger, KWS, Keyword Spotting, voice-activated)
+    1. [mycroft-precise](https://fancyerii.github.io/books/mycroft-precise/), tf+keras, 重构后复活并兼容新框架,模型精度无法爬坡,但音频处理可以借鉴. [forked by jiafeng5513](https://github.com/jiafeng5513/precise)
+    2. [snowboy](https://github.com/Kitt-AI/snowboy), 半开源,效果非常强,但是无法获得模型设计和音频处理细节,多方尝试无法移植到android x86.
+    3. [snowman](https://github.com/Thalhammer/snowman), 逆向的[snowboy](https://github.com/Kitt-AI/snowboy), 写的不太好,不建议花时间研究.
+    4. [SWIG](https://luoxiangyong.gitbooks.io/swig-documentation-chinese/content/chapter02/02-04-supported_ccpp-language-features.html), 这是用来编译[snowboy](https://github.com/Kitt-AI/snowboy)的,其作用是快速生产C++的其他语音接口.
+    5. [Apple ML Research: Voice Trigger System for Siri](https://machinelearning.apple.com/research/voice-trigger)
+    6. [paddlespeech 语音唤醒初探](https://www.cnblogs.com/talkaudiodev/p/17176554.html),此乃二手学术资源,谨慎阅读.
+    7. [lenovo-voice: PVTC2020](https://github.com/lenovo-voice/THE-2020-PERSONALIZED-VOICE-TRIGGER-CHALLENGE-BASELINE-SYSTEM),一个比赛的基线, 主要作用是引导我找到了数据集.
+    8. [paddlespeech 关键词识别](https://github.com/PaddlePaddle/PaddleSpeech/blob/develop/demos/keyword_spotting/README_cn.md)
+## advanced papers and repos
+   1. [DCCRN-KWS: An Audio Bias Based Model for Noise Robust Small-Footprint Keyword Spotting](https://arxiv.org/pdf/2305.12331.pdf),模型看起来很不错,但是无代码,从论文中看,训练所需的资源可能是不可承受的.
+   2. [ML-KWS-for-MCU](https://github.com/ARM-software/ML-KWS-for-MCU)
+   3. [paperswithcode: Keyword Spotting](https://paperswithcode.com/task/keyword-spotting/codeless?page=2)
+   4. [Learning Efficient Representations for Keyword Spotting with Triplet Loss](https://github.com/roman-vygon/triplet_loss_kws)
+   5. [RapidASR](https://github.com/RapidAI/RapidASR),ASR,开源情况不明,[此处](https://github.com/alibaba-damo-academy/FunASR)有代码似乎为语音唤醒.
+   6. [Maix-Speech](https://github.com/sipeed/Maix-Speech/blob/master/README_ZH.md),半开源,且主要为ASR和TTS.
+   7. [Android离线语音识别](https://xiangnan.github.io/2016/08/19/Android%E7%A6%BB%E7%BA%BF%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB/),项目过老,其中的release apk无法安装运行于IVI,迁移到新工具链上进行重新编译需要消耗时间进行调试,不建议.
+   8. [使用ModelScope训练自有的远场语音唤醒模型](https://developer.aliyun.com/article/1210234)
