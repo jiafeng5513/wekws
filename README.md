@@ -36,6 +36,9 @@ this repo is forked from https://github.com/wenet-e2e/wekws, [this is the origin
     6. [paddlespeech 语音唤醒初探](https://www.cnblogs.com/talkaudiodev/p/17176554.html),此乃二手学术资源,谨慎阅读.
     7. [lenovo-voice: PVTC2020](https://github.com/lenovo-voice/THE-2020-PERSONALIZED-VOICE-TRIGGER-CHALLENGE-BASELINE-SYSTEM),一个比赛的基线, 主要作用是引导我找到了数据集.
     8. [paddlespeech 关键词识别](https://github.com/PaddlePaddle/PaddleSpeech/blob/develop/demos/keyword_spotting/README_cn.md)
+    9. speechcommand_v1 需要重新编译torchaudio或者切到cuda
+    10. hi_sinps需要下载一个需要注册的数据集,已经提交注册[Sonos Voice Experience Open Datasets ](https://docs.google.com/forms/d/e/1FAIpQLSdluk5umSFUJhzcmrcbQJoVNPyMoiQgLoMEXS11Bju0_fF_kw/viewform)
+    11. hi_xiaowen 需要重新编译torchaudio或者切到cuda
 ## advanced papers and repos
    1. [DCCRN-KWS: An Audio Bias Based Model for Noise Robust Small-Footprint Keyword Spotting](https://arxiv.org/pdf/2305.12331.pdf),模型看起来很不错,但是无代码,从论文中看,训练所需的资源可能是不可承受的.
    2. [ML-KWS-for-MCU](https://github.com/ARM-software/ML-KWS-for-MCU)

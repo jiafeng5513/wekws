@@ -10,7 +10,7 @@ num_keywords=2
 config=conf/ds_tcn.yaml
 norm_mean=true
 norm_var=true
-gpus="0,1"
+gpus="-1"
 
 checkpoint=
 dir=exp/ds_tcn
@@ -22,6 +22,14 @@ download_dir=./data/local # your data dir
 
 . tools/parse_options.sh || exit 1;
 window_shift=50
+
+echo "usage: bash run.sh <start_stage> <stop_stage>"
+echo "  stage -1 : download and extract dataset"
+echo "  stage 0 : preprocess"
+echo "  stage 1 : Compute CMVN and Format datasets"
+echo "  stage 2 : training"
+echo "  stage 3 : model average"
+echo "  stage 4 : model export"
 
 if [ ${stage} -le -1 ] && [ ${stop_stage} -ge -1 ]; then
   echo "Download and extracte all datasets"
@@ -66,12 +74,15 @@ fi
 
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
-  echo "Start training ..."
+  echo "Start training ... "
+
   mkdir -p $dir
   cmvn_opts=
   $norm_mean && cmvn_opts="--cmvn_file data/train/global_cmvn"
   $norm_var && cmvn_opts="$cmvn_opts --norm_var"
   num_gpus=$(echo $gpus | awk -F ',' '{print NF}')
+  echo "$cmvn_opts"
+  exit 0
   torchrun --standalone --nnodes=1 --nproc_per_node=$num_gpus \
     wekws/bin/train.py --gpus $gpus \
       --config $config \
@@ -85,6 +96,22 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
       $cmvn_opts \
       ${checkpoint:+--checkpoint $checkpoint}
 fi
+
+# wekws/bin/train.py
+#   --device ipex
+#   --gpus 0
+#   --config conf/ds_tcn.yaml
+#   --train_data data/train/data.list
+#   --cv_data data/dev/data.list
+#   --model_dir exp/ds_tcn
+#   --num_workers 8
+#   --num_keywords 2
+#   --min_duration 50
+#   --seed 666
+#   --cmvn_file data/train/global_cmvn --norm_var
+
+
+
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
   echo "Do model average, Compute FRR/FAR ..."
