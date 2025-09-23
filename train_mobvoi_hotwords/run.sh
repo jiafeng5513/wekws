@@ -1,7 +1,10 @@
 #!/bin/bash
 # Copyright 2021  Binbin Zhang(binbzha@qq.com)
+set -e
+CURRENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd);
+REPO_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/../" && pwd);
 
-. ./path.sh
+source ${CURRENT_DIR}/path.sh
 
 stage=$1
 stop_stage=$2
@@ -21,7 +24,7 @@ score_checkpoint=$dir/avg_${num_average}.pt
 # download_dir=./data/local # your data dir
 download_dir=/mnt/g/wekws/data/MobvoiHotwords
 
-. tools/parse_options.sh || exit 1;
+. ${REPO_DIR}/tools/parse_options.sh || exit 1;
 window_shift=50
 
 echo "usage: bash run.sh <start_stage> <stop_stage>"
@@ -62,13 +65,13 @@ fi
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
   echo "Compute CMVN and Format datasets"
-  tools/compute_cmvn_stats.py --num_workers 16 --train_config $config \
+  python ${REPO_DIR}/tools/compute_cmvn_stats.py --num_workers 16 --train_config $config \
     --in_scp data/train/wav.scp \
     --out_cmvn data/train/global_cmvn
 
   for x in train dev test; do
-    tools/wav_to_duration.sh --nj 8 data/$x/wav.scp data/$x/wav.dur
-    tools/make_list.py data/$x/wav.scp data/$x/text \
+    bash ${REPO_DIR}/tools/wav_to_duration.sh --nj 8 data/$x/wav.scp data/$x/wav.dur
+    python ${REPO_DIR}/tools/make_list.py data/$x/wav.scp data/$x/text \
       data/$x/wav.dur data/$x/data.list
   done
 fi
@@ -83,9 +86,8 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
   $norm_var && cmvn_opts="$cmvn_opts --norm_var"
   num_gpus=$(echo $gpus | awk -F ',' '{print NF}')
   echo "$cmvn_opts"
-  exit 0
-  torchrun --standalone --nnodes=1 --nproc_per_node=$num_gpus \
-    wekws/bin/train.py --gpus $gpus \
+  # torchrun --standalone --nnodes=1 --nproc_per_node=$num_gpus \
+    python ${REPO_DIR}/wekws/bin/train.py --gpus $gpus \
       --config $config \
       --train_data data/train/data.list \
       --cv_data data/dev/data.list \

@@ -1,8 +1,11 @@
 #!/bin/bash
 # trim silence of keywords wav files at both sides, while fillers are left intact
+set -e
+CURRENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd);
+REPO_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/../" && pwd);
 
 nj=8
-. tools/parse_options.sh || exit 1;
+. ${CURRENT_DIR}/parse_options.sh || exit 1;
 
 inscp=$1
 text=$2 # text files that map wav ids to labels

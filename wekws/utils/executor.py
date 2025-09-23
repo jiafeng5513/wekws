@@ -34,6 +34,7 @@ class Executor:
         min_duration = args.get('min_duration', 0)
 
         for batch_idx, batch in enumerate(data_loader):
+            print("batch_idx = {}".format(batch_idx))
             key, feats, target, feats_lengths, label_lengths = batch
             feats = feats.to(device)
             target = target.to(device)
