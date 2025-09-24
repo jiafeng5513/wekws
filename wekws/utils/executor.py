@@ -20,6 +20,9 @@ from torch.nn.utils import clip_grad_norm_
 from wekws.model.loss import criterion
 
 
+max_training_batches = 0
+max_cv_batches = 0
+
 class Executor:
     def __init__(self):
         self.step = 0
@@ -33,11 +36,11 @@ class Executor:
         epoch = args.get('epoch', 0)
         num_epochs = args.get('num_epochs', 0)
         min_duration = args.get('min_duration', 0)
-        max_batches = 0
+        global max_training_batches
         for batch_idx, batch in enumerate(data_loader):
             # print("batch_idx = {}".format(batch_idx))
-            if max_batches <= batch_idx:
-                max_batches = batch_idx
+            if max_training_batches <= batch_idx:
+                max_training_batches = batch_idx
             key, feats, target, feats_lengths, label_lengths = batch
             feats = feats.to(device)
             target = target.to(device)
@@ -58,7 +61,7 @@ class Executor:
             if torch.isfinite(grad_norm):
                 optimizer.step()
             if batch_idx % log_interval == 0:
-                logging.debug('TRAINING [Epoch {}/{}] [Batch {}/{}] loss {:.8f} acc {:.8f}'.format(epoch, num_epochs, batch_idx, max_batches, loss.item(), acc))
+                logging.debug('TRAINING [Epoch {}/{}] [Batch {}/{}] loss {:.8f} acc {:.8f}'.format(epoch, num_epochs, batch_idx, max_training_batches, loss.item(), acc))
 
     def cv(self, model, data_loader, device, args):
         ''' Cross validation on
@@ -66,12 +69,16 @@ class Executor:
         model.eval()
         log_interval = args.get('log_interval', 10)
         epoch = args.get('epoch', 0)
+        num_epochs = args.get('num_epochs', 0)
         # in order to avoid division by 0
         num_seen_utts = 1
         total_loss = 0.0
         total_acc = 0.0
+        global max_cv_batches
         with torch.no_grad():
             for batch_idx, batch in enumerate(data_loader):
+                if max_cv_batches <= batch_idx:
+                    max_cv_batches = batch_idx
                 key, feats, target, feats_lengths, label_lengths = batch
                 feats = feats.to(device)
                 target = target.to(device)
@@ -92,9 +99,8 @@ class Executor:
                     total_acc += acc * num_utts
                 if batch_idx % log_interval == 0:
                     logging.debug(
-                        'CV Batch {}/{} loss {:.8f} acc {:.8f} history loss {:.8f}'
-                        .format(epoch, batch_idx, loss.item(), acc,
-                                total_loss / num_seen_utts))
+                        'CV [Epoch {}/{}] [Batch {}/{}] loss {:.8f} acc {:.8f} history loss {:.8f}'
+                        .format(epoch, num_epochs, batch_idx, max_cv_batches, loss.item(), acc, total_loss / num_seen_utts))
         return total_loss / num_seen_utts, total_acc / num_seen_utts
 
     def test(self, model, data_loader, device, args):

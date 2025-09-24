@@ -34,6 +34,8 @@ from wekws.model.kws_model import init_model
 from wekws.utils.executor import Executor
 from wekws.utils.train_utils import count_parameters, set_mannul_seed
 
+import warnings, torchaudio
+warnings.filterwarnings("ignore", category=UserWarning, module="torchaudio")
 
 def get_args():
     parser = argparse.ArgumentParser(description='training your network')
@@ -134,8 +136,7 @@ def training_with_cuda(args):
                                 num_workers=args.num_workers,
                                 prefetch_factor=args.prefetch)
 
-    input_dim = configs['dataset_conf']['feature_extraction_conf'][
-        'num_mel_bins']
+    input_dim = configs['dataset_conf']['feature_extraction_conf']['num_mel_bins']
     output_dim = args.num_keywords
 
     # Write model_dir/config.yaml for inference and export
