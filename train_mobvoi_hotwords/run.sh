@@ -22,7 +22,7 @@ num_average=30
 score_checkpoint=$dir/avg_${num_average}.pt
 
 # download_dir=./data/local # your data dir
-download_dir=/mnt/g/wekws/data/MobvoiHotwords
+download_dir=/home/anna/WorkSpace/ProjectsAi/wekws/data/MobvoiHotwords
 
 . ${REPO_DIR}/tools/parse_options.sh || exit 1;
 window_shift=50

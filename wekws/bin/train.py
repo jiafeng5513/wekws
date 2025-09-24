@@ -223,17 +223,15 @@ def training_with_cuda(args):
 
     torch.cuda.set_per_process_memory_fraction(0.85)  # 最多使用 85% 显存
 
+    training_config['num_epochs'] = num_epochs
     for epoch in range(start_epoch, num_epochs):
         train_dataset.set_epoch(epoch)
         training_config['epoch'] = epoch
         lr = optimizer.param_groups[0]['lr']
         logging.info('Epoch {} TRAIN info lr {}'.format(epoch, lr))
-        executor.train(model, optimizer, train_data_loader, device, writer,
-                       training_config)
-        cv_loss, cv_acc = executor.cv(model, cv_data_loader, device,
-                                      training_config)
-        logging.info('Epoch {} CV info cv_loss {} cv_acc {}'.format(
-            epoch, cv_loss, cv_acc))
+        executor.train(model, optimizer, train_data_loader, device, writer, training_config)
+        cv_loss, cv_acc = executor.cv(model, cv_data_loader, device, training_config)
+        logging.info('Epoch {} CV info cv_loss {} cv_acc {}'.format(epoch, cv_loss, cv_acc))
 
         # if rank == 0:
         save_model_path = os.path.join(model_dir, '{}.pt'.format(epoch))
